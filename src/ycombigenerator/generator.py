@@ -119,7 +119,7 @@ def _check_server() -> None:
     except Exception:
         raise RuntimeError(
             f"Cannot connect to opencode server at {base}.\n"
-            "  Start it with:  opencode serve\n"
+            "  Start it with:  opencode serve --port 36000\n"
             "  Or use template mode:  yc generate --template"
         )
 
