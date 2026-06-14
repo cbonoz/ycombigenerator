@@ -200,9 +200,13 @@ Current trends:
         user_prompt += f"\nAdditional direction: {custom_prompt}"
     user_prompt += "\n\nGenerate a single realistic YC startup idea in JSON:"
 
-    client = _client()
-    session = client.create_session(title="yc-generator")
-    resp = client.send_message(session["id"], f"{system_prompt}\n\n{user_prompt}")
+    import httpx
+    try:
+        client = _client()
+        session = client.create_session(title="yc-generator")
+        resp = client.send_message(session["id"], f"{system_prompt}\n\n{user_prompt}")
+    except httpx.TimeoutException:
+        raise TimeoutError("LLM request timed out after 120 seconds")
     for p in resp.get("parts", []):
         if p.get("type") == "text" and p.get("text", "").strip():
             return p["text"]

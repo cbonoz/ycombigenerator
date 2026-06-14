@@ -108,14 +108,23 @@ def generate(
     from ycombigenerator.generator import generate_company, generate_batch
     companies = load()
 
+    if not template:
+        console.print("[dim]LLM calls can take 30–60 seconds. The spinner shows it's working.[/dim]")
+
     try:
-        with console.status("Generating startup idea..."):
+        with console.status("Generating startup idea...") as status:
+            if count > 1:
+                status.update(f"Generating {count} ideas...")
             if count == 1:
                 results = [generate_company(companies, prompt=prompt, _fallback=template)]
             else:
                 results = generate_batch(companies, count=count, prompt=prompt, _fallback=template)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+    except TimeoutError:
+        console.print("[red]Request timed out. The LLM took too long to respond.[/red]")
+        console.print("  Try: yc generate --template  (local generator, instant)")
         raise typer.Exit(code=1)
 
     for i, result in enumerate(results, 1):
