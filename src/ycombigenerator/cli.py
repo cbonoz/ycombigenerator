@@ -108,11 +108,15 @@ def generate(
     from ycombigenerator.generator import generate_company, generate_batch
     companies = load()
 
-    with console.status("Generating startup idea..."):
-        if count == 1:
-            results = [generate_company(companies, prompt=prompt, _fallback=template)]
-        else:
-            results = generate_batch(companies, count=count, prompt=prompt, _fallback=template)
+    try:
+        with console.status("Generating startup idea..."):
+            if count == 1:
+                results = [generate_company(companies, prompt=prompt, _fallback=template)]
+            else:
+                results = generate_batch(companies, count=count, prompt=prompt, _fallback=template)
+    except RuntimeError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
 
     for i, result in enumerate(results, 1):
         if raw:

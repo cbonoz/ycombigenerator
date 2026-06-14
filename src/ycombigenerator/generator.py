@@ -111,6 +111,19 @@ Current trends:
     return resp.get("content", "")
 
 
+def _check_server() -> None:
+    import urllib.request
+    base = os.environ.get("OPENCODE_SERVER", "http://localhost:36000")
+    try:
+        urllib.request.urlopen(f"{base}/session", timeout=2)
+    except Exception:
+        raise RuntimeError(
+            f"Cannot connect to opencode server at {base}.\n"
+            "  Start it with:  opencode serve\n"
+            "  Or use template mode:  yc generate --template"
+        )
+
+
 def _fallback_generate() -> str:
     products = [
         "A platform", "An API", "A mobile app", "A marketplace", "A SaaS tool",
@@ -191,6 +204,8 @@ def generate_company(companies: dict[str, Company], **kwargs: Any) -> str:
     use_fallback = kwargs.get("_fallback", False)
     if use_fallback:
         return _fallback_generate()
+
+    _check_server()
 
     context = _build_context(companies)
     trend_summary = _build_trend_summary(companies)
