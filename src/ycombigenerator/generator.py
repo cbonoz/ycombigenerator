@@ -78,39 +78,6 @@ def _build_trend_summary(companies: dict[str, Company]) -> str:
     return "\n".join(lines)
 
 
-def generate_company(companies: dict[str, Company], **kwargs: Any) -> str:
-    context = _build_context(companies)
-    trend_summary = _build_trend_summary(companies)
-    custom_prompt = kwargs.get("prompt", "")
-
-    system_prompt = """You are a Y Combinator partner brainstorming the next batch of startups.
-Generate a realistic, compelling YC startup idea. Be specific and concrete.
-Output format:
-{
-  "name": "CompanyName",
-  "one_liner": "A compelling one-sentence description",
-  "industry": "industry category",
-  "problem": "What problem it solves (2-3 sentences)",
-  "why_now": "Why this is timely (1-2 sentences)",
-  "founder_advice": "What YC would advise the founders (1 sentence)"
-}"""
-
-    user_prompt = f"""Here are recent YC companies for reference:
-{context}
-
-Current trends:
-{trend_summary}
-"""
-    if custom_prompt:
-        user_prompt += f"\nAdditional direction: {custom_prompt}"
-    user_prompt += "\n\nGenerate a single realistic YC startup idea in JSON:"
-
-    client = _client()
-    session = client.create_session(title="yc-generator")
-    resp = client.send_message(session["id"], f"{system_prompt}\n\n{user_prompt}")
-    return resp.get("content", "")
-
-
 def _check_server() -> None:
     import urllib.request
     base = os.environ.get("OPENCODE_SERVER", "http://localhost:36000")
@@ -236,7 +203,10 @@ Current trends:
     client = _client()
     session = client.create_session(title="yc-generator")
     resp = client.send_message(session["id"], f"{system_prompt}\n\n{user_prompt}")
-    return resp.get("content", "")
+    for p in resp.get("parts", []):
+        if p.get("type") == "text" and p.get("text", "").strip():
+            return p["text"]
+    return ""
 
 
 def generate_batch(companies: dict[str, Company], count: int = 5, **kwargs: Any) -> list[str]:
