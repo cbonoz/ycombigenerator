@@ -42,7 +42,7 @@ Most YC companies have 2–3 founders.
 Industries ranked by percentage of companies still active or acquired.
 ![Survival by Industry](figures/survival_by_industry.png)
 
-> All commands must be run via `uv run` — e.g. `uv run yc generate`.
+> Commands should be run via `uv run` — e.g. `uv run yc generate`.
 
 ## Commands
 
