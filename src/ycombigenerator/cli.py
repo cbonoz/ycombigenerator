@@ -177,9 +177,9 @@ def plot():
 def info():
     """Show project info and configuration."""
     console.print("[bold]Y Combinator Generator[/bold]")
-    key_status = "[green]set[/green]" if os.environ.get("OPENCODE_API_KEY") else "[red]not set[/red]"
-    console.print(f"  OPENCODE_API_KEY: {key_status}")
-    console.print(f"  OPENCODE_MODEL: {os.environ.get('OPENCODE_MODEL', 'deepseek-v4-flash (default)')}")
+    key_status = "[green]set[/green]" if os.environ.get("AI_API_KEY") else "[red]not set[/red]"
+    console.print(f"  AI_API_KEY: {key_status}")
+    console.print(f"  AI_MODEL: {os.environ.get('AI_MODEL', 'grok-4.3-latest (default)')}")
     from ycombigenerator.scraper import DATA_DIR
     console.print(f"  Data directory: {DATA_DIR}")
 

@@ -5,12 +5,10 @@ import random
 from pathlib import Path
 from typing import Any
 
-from opencode_sdk import OpencodeClient
+from openai import OpenAI
 
 from ycombigenerator.scraper import Company, batch_year
 from ycombigenerator.analyzer import industry_trends, trending_topics
-
-_DEFAULT_MODEL = "opencode-go/deepseek-v4-flash"
 
 
 def _load_env() -> None:
@@ -26,17 +24,13 @@ def _load_env() -> None:
 _load_env()
 
 
-def _client() -> OpencodeClient:
-    if not os.environ.get("OPENCODE_API_KEY"):
-        print("Usage: OPENCODE_API_KEY=your_key yc generate")
-        raise RuntimeError("OPENCODE_API_KEY environment variable not set")
-    try:
-        return OpencodeClient()
-    except Exception as e:
-        raise RuntimeError(
-            f"Cannot connect to opencode server: {e}\n"
-            "Start it with: opencode serve"
-        ) from e
+def _client() -> tuple[OpenAI, str]:
+    api_key = os.environ.get("AI_API_KEY")
+    if not api_key:
+        print("Usage: AI_API_KEY=your_key yc generate")
+        raise RuntimeError("AI_API_KEY environment variable not set")
+    model = os.environ.get("AI_MODEL", "grok-4.3-latest")
+    return OpenAI(api_key=api_key, base_url="https://api.x.ai/v1"), model
 
 
 def predict_trends(companies: dict[str, Company], top_n: int = 5) -> dict[str, list[dict[str, Any]]]:
@@ -76,19 +70,6 @@ def _build_trend_summary(companies: dict[str, Company]) -> str:
     for t in topics[:5]:
         lines.append(f"  - {t['tag']} ({t['growth_pct']:+.0f}%)")
     return "\n".join(lines)
-
-
-def _check_server() -> None:
-    import urllib.request
-    base = os.environ.get("OPENCODE_SERVER", "http://localhost:36000")
-    try:
-        urllib.request.urlopen(f"{base}/session", timeout=2)
-    except Exception:
-        raise RuntimeError(
-            f"Cannot connect to opencode server at {base}.\n"
-            "  Start it with:  opencode serve --port 36000\n"
-            "  Or use template mode:  yc generate --template"
-        )
 
 
 def _fallback_generate() -> str:
@@ -172,8 +153,6 @@ def generate_company(companies: dict[str, Company], **kwargs: Any) -> str:
     if use_fallback:
         return _fallback_generate()
 
-    _check_server()
-
     context = _build_context(companies)
     trend_summary = _build_trend_summary(companies)
     custom_prompt = kwargs.get("prompt", "")
@@ -200,17 +179,22 @@ Current trends:
         user_prompt += f"\nAdditional direction: {custom_prompt}"
     user_prompt += "\n\nGenerate a single realistic YC startup idea in JSON:"
 
-    import httpx
+    client, model = _client()
     try:
-        client = _client()
-        session = client.create_session(title="yc-generator")
-        resp = client.send_message(session["id"], f"{system_prompt}\n\n{user_prompt}")
-    except httpx.TimeoutException:
-        raise TimeoutError("LLM request timed out after 120 seconds")
-    for p in resp.get("parts", []):
-        if p.get("type") == "text" and p.get("text", "").strip():
-            return p["text"]
-    return ""
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.8,
+            timeout=120,
+        )
+    except Exception as e:
+        raise TimeoutError(f"LLM request failed: {e}")
+
+    text = resp.choices[0].message.content
+    return text or ""
 
 
 def generate_batch(companies: dict[str, Company], count: int = 5, **kwargs: Any) -> list[str]:

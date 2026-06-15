@@ -49,8 +49,8 @@ Industries ranked by percentage of companies still active or acquired.
 | `yc stats` | Dataset statistics and distributions |
 | `yc analyze` | Industry trends and growing tags |
 | `yc trends` | Predicted next YC trends |
-| `yc generate --template` | Generate startup idea (local, no server needed) |
-| `yc generate` | Generate with opencode SDK (requires `opencode serve`) |
+| `yc generate --template` | Generate startup idea (local, no API needed) |
+| `yc generate` | Generate with Grok/xAI (requires `AI_API_KEY` in `.env`) |
 | `yc generate --count 5` | Generate multiple ideas |
 | `yc generate --prompt "climate tech"` | Generate with a custom direction |
 | `yc plot` | Generate all 9 visualizations in `figures/` |
@@ -60,10 +60,11 @@ Industries ranked by percentage of companies still active or acquired.
 ## Setup
 
 ```bash
+cp .env.example .env   # add your AI_API_KEY from x.ai
 uv sync
-yc stats           # verify the dataset loaded
-yc plot            # generate visualizations
-yc generate -t     # try the template generator
+yc stats               # verify the dataset loaded
+yc plot                # generate visualizations
+yc generate -t         # try the template generator
 ```
 
 ## Data
@@ -74,19 +75,34 @@ yc generate -t     # try the template generator
 
 ## Generation
 
-Without a running opencode server, use `--template` for local generation:
+Requires an [xAI API key](https://console.x.ai) set in `.env`:
+
+```env
+AI_API_KEY=xai-...
+AI_MODEL=grok-4.3-latest
+```
+
+Uses the OpenAI-compatible xAI API directly — no local server needed:
 
 ```bash
-yc generate -t
+yc generate
+# → #1: Chipwise
+#   Conversational AI agents that troubleshoot semiconductor fab operations.
+#   Industry: B2B, Semiconductors
+```
+
+For multiple ideas or custom direction:
+
+```bash
+yc generate -n 3
+yc generate -p "fintech infrastructure"
+```
+
+For instant no-API generation (random template assembly):
+
+```bash
+yc generate --template
 # → #1: DataDemocratizes
 #   AI-powered compliance tracking for data scientists.
 #   Industry: B2B
-```
-
-With the opencode SDK (start `opencode serve` first and set `OPENCODE_API_KEY`):
-
-```bash
-export OPENCODE_API_KEY=sk-...
-opencode serve &
-yc generate
 ```
