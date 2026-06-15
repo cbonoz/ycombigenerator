@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
+from ycombigenerator.analyzer import keyword_trends, batch_concentration
 from ycombigenerator.scraper import Company, batch_year
 
 FIGS_DIR = Path(__file__).resolve().parent.parent.parent / "figures"
@@ -367,6 +368,85 @@ def survival_rate_by_industry(companies: dict[str, Company], top_n: int = 10) ->
     fig.tight_layout()
 
     path = FIGS_DIR / "survival_by_industry.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return str(path)
+
+
+def keyword_timeline(companies: dict[str, Company], top_n: int = 8) -> str:
+    trends = keyword_trends(companies, top_n=top_n)
+    if not trends:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.text(0.5, 0.5, "Not enough data", ha="center", va="center", fontsize=14)
+        path = FIGS_DIR / "keyword_timeline.png"
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+        return str(path)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    colors = plt.cm.Set2(range(len(trends)))
+
+    for trend, color in zip(trends, colors):
+        series = trend["series"]
+        years = [s[0] for s in series]
+        counts = [s[1] for s in series]
+        ax.plot(years, counts, label=trend["keyword"], color=color, linewidth=2, marker="o", markersize=3)
+
+    ax.set_xlabel("Year", fontsize=12)
+    ax.set_ylabel("Mentions in One-Liners", fontsize=12)
+    ax.set_title("YC One-Liner Keyword Trends", fontsize=14, fontweight="bold")
+    ax.legend(frameon=True, fancybox=True, shadow=True)
+    ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+
+    path = FIGS_DIR / "keyword_timeline.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return str(path)
+
+
+def batch_concentration_plot(companies: dict[str, Company]) -> str:
+    data = batch_concentration(companies)
+    if not data:
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.text(0.5, 0.5, "Not enough data", ha="center", va="center", fontsize=14)
+        path = FIGS_DIR / "batch_concentration.png"
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+        return str(path)
+
+    data = [d for d in data if d["year"] and d["year"] >= 2010]
+    batches = [d["batch"] for d in data]
+    top_shares = [d["top_share"] for d in data]
+    industry_counts = [d["industry_count"] for d in data]
+
+    fig, ax1 = plt.subplots(figsize=(14, 5))
+
+    color1 = "#3498db"
+    ax1.bar(range(len(batches)), top_shares, color=color1, alpha=0.7, label="Top Industry Share (%)")
+    ax1.set_xticks(range(len(batches)))
+    ax1.set_xticklabels(batches, rotation=90, fontsize=8)
+    ax1.set_xlabel("Batch", fontsize=12)
+    ax1.set_ylabel("Top Industry Share (%)", fontsize=12, color=color1)
+    ax1.tick_params(axis="y", labelcolor=color1)
+    ax1.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax1.grid(True, axis="y", alpha=0.3)
+
+    color2 = "#e74c3c"
+    ax2 = ax1.twinx()
+    ax2.plot(range(len(batches)), industry_counts, color=color2, marker="o", linewidth=2, label="Unique Industries")
+    ax2.set_ylabel("Unique Industries", fontsize=12, color=color2)
+    ax2.tick_params(axis="y", labelcolor=color2)
+    ax2.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+
+    fig.suptitle("YC Batch Industry Concentration", fontsize=14, fontweight="bold")
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left", frameon=True, fancybox=True)
+    fig.tight_layout()
+
+    path = FIGS_DIR / "batch_concentration.png"
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return str(path)

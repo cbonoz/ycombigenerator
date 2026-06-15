@@ -147,6 +147,41 @@ def generate(
 
 
 @app.command()
+def keywords():
+    """Show trending keywords in YC company one-liners over time."""
+    from ycombigenerator.scraper import load
+    from ycombigenerator.analyzer import keyword_trends as _keywords
+    companies = load()
+    result = _keywords(companies)
+
+    console.print("[bold]Trending Keywords in One-Liners[/bold]")
+    for kw in result:
+        console.print(f"  [cyan]{kw['keyword']}[/cyan]: +{kw['growth_pct']:.0f}% ({kw['total']} mentions)")
+
+
+@app.command()
+def concentration():
+    """Show industry concentration per YC batch."""
+    from ycombigenerator.scraper import load
+    from ycombigenerator.analyzer import batch_concentration as _concentration
+    companies = load()
+    data = _concentration(companies)
+
+    table = Table(title="Batch Industry Concentration")
+    table.add_column("Batch", style="cyan")
+    table.add_column("Year", justify="right")
+    table.add_column("Total", justify="right")
+    table.add_column("Top Industry")
+    table.add_column("Top Share %", justify="right")
+    table.add_column("Industries", justify="right")
+    for d in data:
+        if d["year"] and d["year"] >= 2010:
+            table.add_row(d["batch"], str(d["year"]), str(d["total"]),
+                          d["top_industry"], str(d["top_share"]), str(d["industry_count"]))
+    console.print(table)
+
+
+@app.command()
 def plot():
     """Generate visualizations of YC company data."""
     from ycombigenerator.scraper import load
@@ -154,6 +189,7 @@ def plot():
         industry_timeline, batch_sizes, growing_tags, status_over_time,
         wordcloud_one_liners, geographic_distribution, industry_heatmap,
         founder_count_distribution, survival_rate_by_industry,
+        keyword_timeline, batch_concentration_plot,
     )
     companies = load()
 
@@ -168,6 +204,8 @@ def plot():
         paths["Industry heatmap"] = industry_heatmap(companies)
         paths["Founder distribution"] = founder_count_distribution(companies)
         paths["Survival by industry"] = survival_rate_by_industry(companies)
+        paths["Keyword timeline"] = keyword_timeline(companies)
+        paths["Batch concentration"] = batch_concentration_plot(companies)
 
     for name, path in paths.items():
         console.print(f"[green]{name}:[/green] {path}")

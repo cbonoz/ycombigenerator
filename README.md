@@ -42,6 +42,14 @@ Most YC companies have 2–3 founders.
 Industries ranked by percentage of companies still active or acquired.
 ![Survival by Industry](figures/survival_by_industry.png)
 
+### Keyword Timeline
+"agents" surged +700% in one-liner mentions since 2023 — the fastest-growing keyword.
+![Keyword Timeline](figures/keyword_timeline.png)
+
+### Batch Concentration
+B2B dominates every batch, but its share has risen sharply from ~25% to over 60% in 2025.
+![Batch Concentration](figures/batch_concentration.png)
+
 > Commands should be run via `uv run` — e.g. `uv run yc generate`.
 
 ## Commands
@@ -51,11 +59,13 @@ Industries ranked by percentage of companies still active or acquired.
 | `yc stats` | Dataset statistics and distributions |
 | `yc analyze` | Industry trends and growing tags |
 | `yc trends` | Predicted next YC trends |
+| `yc keywords` | Trending keywords in one-liners over time |
+| `yc concentration` | Industry concentration per batch |
 | `yc generate --template` | Generate startup idea (local, no API needed) |
 | `yc generate` | Generate with Grok/xAI (requires `AI_API_KEY` in `.env`) |
 | `yc generate --count 5` | Generate multiple ideas |
 | `yc generate --prompt "climate tech"` | Generate with a custom direction |
-| `yc plot` | Generate all 9 visualizations in `figures/` |
+| `yc plot` | Generate all 11 visualizations in `figures/` |
 | `yc refresh` | Download latest dataset |
 | `yc info` | Show configuration |
 
