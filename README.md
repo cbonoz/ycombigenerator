@@ -87,8 +87,13 @@ Uses the OpenAI-compatible xAI API directly — no local server needed:
 ```bash
 yc generate
 # → #1: Chipwise
-#   Conversational AI agents that troubleshoot semiconductor fab operations.
-#   Industry: B2B, Semiconductors
+#     AI agents that automate semiconductor design verification and debug.
+#     Industry: B2B, Semiconductors
+#     Problem: Chip verification now consumes 60-70% of design time...
+#     Why now: New multimodal LLMs can finally parse RTL, waveforms, and
+#              testbenches at superhuman scale.
+#     Advice: Start by embedding inside one existing EDA flow (Cadence or
+#             Synopsys) rather than trying to replace the whole toolchain.
 ```
 
 For multiple ideas or custom direction:
@@ -103,6 +108,6 @@ For instant no-API generation (random template assembly):
 ```bash
 yc generate --template
 # → #1: DataDemocratizes
-#   AI-powered compliance tracking for data scientists.
-#   Industry: B2B
+#     AI-powered compliance tracking for data scientists.
+#     Industry: B2B
 ```
